@@ -1,12 +1,26 @@
+import { useState, useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth'
 
 import Home from './pages/Home'
 
 import './App.css'
+import userEvent from '@testing-library/user-event'
 
 function App() {
+  const [user, setUser] = useState(null)
+  const [authenticated, setAuthenticated] = useState(false)
+  const [token, setToken] = useState(null)
+
+  const auth = getAuth()
+
   // initialize instance of Google Provider
   const provider = new GoogleAuthProvider()
   // placeholder for email
@@ -14,27 +28,72 @@ function App() {
     login_hint: 'user@example.com'
   })
 
-  // sign in using popup
-  const auth = getAuth()
-  signInWithPopup(auth, provider)
-    .then((result) => {
+  const googleLogin = () => {
+    // sign in using popup
+    // const auth = getAuth()
+    signInWithPopup(auth, provider).then((result) => {
       const credential = GoogleAuthProvider.credentialFromResult(result)
-      const token = credential.accessToken
-      const user = result.user
+      console.log(credential)
+      setAuthenticated(true)
+      window.localStorage.setItem('auth', 'true')
+      // const token = credential.accessToken
+      setUser({
+        displayName: result.user.displayName,
+        email: result.user.email,
+        userId: result.user.uid
+      })
     })
-    .catch((e) => {
-      const errorCode = e.errorCode
-      const errorMessage = e.message
-      const email = e.customData.email
-      const credential = GoogleAuthProvider.credentialFromError(e)
-    })
+    // .catch((e) => {
+    //   const errorCode = e.errorCode
+    //   const errorMessage = e.message
+    //   const email = e.customData.email
+    //   const credential = GoogleAuthProvider.credentialFromError(e)
+    // })
+  }
 
-  const googleLogin = () => {}
+  const googleLogout = () => {
+    // const auth = getAuth()
+    signOut(auth)
+      .then(() => {
+        console.log('signed out')
+        setUser(null)
+        setToken(null)
+        setAuthenticated(false)
+        window.localStorage.clear()
+      })
+      .catch((e) => {
+        console.log('error')
+      })
+  }
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setAuthenticated(true)
+        window.localStorage.setItem('auth', 'true')
+        user.getIdToken().then((token) => {
+          setToken(token)
+        })
+        // console.log(user)
+      } else {
+        console.log('no user')
+      }
+    })
+  }, [])
 
   return (
     <div className="App">
       <Routes>
-        <Route path="/" element={<Home googleLogin={googleLogin} />} />
+        <Route
+          path="/"
+          element={
+            <Home
+              googleLogin={googleLogin}
+              googleLogout={googleLogout}
+              authenticated={authenticated}
+            />
+          }
+        />
       </Routes>
     </div>
   )
