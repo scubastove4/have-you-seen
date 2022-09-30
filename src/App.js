@@ -17,7 +17,7 @@ import userEvent from '@testing-library/user-event'
 function App() {
   const [user, setUser] = useState(null)
   const [authenticated, setAuthenticated] = useState(false)
-  const [token, setToken] = useState(null)
+  // const [token, setToken] = useState(null)
 
   const auth = getAuth()
 
@@ -35,7 +35,10 @@ function App() {
       const credential = GoogleAuthProvider.credentialFromResult(result)
       console.log(credential)
       setAuthenticated(true)
-      window.localStorage.setItem('auth', 'true')
+      result.user.getIdToken().then((token) => {
+        // setToken(token)
+        window.localStorage.setItem('token', token)
+      })
       // const token = credential.accessToken
       setUser({
         displayName: result.user.displayName,
@@ -57,7 +60,7 @@ function App() {
       .then(() => {
         console.log('signed out')
         setUser(null)
-        setToken(null)
+        // setToken(null)
         setAuthenticated(false)
         window.localStorage.clear()
       })
@@ -66,20 +69,20 @@ function App() {
       })
   }
 
-  useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setAuthenticated(true)
-        window.localStorage.setItem('auth', 'true')
-        user.getIdToken().then((token) => {
-          setToken(token)
-        })
-        // console.log(user)
-      } else {
-        console.log('no user')
-      }
-    })
-  }, [])
+  // useEffect(() => {
+  //   onAuthStateChanged(auth, (user) => {
+  //     if (user) {
+  //       setAuthenticated(true)
+  //       user.getIdToken().then((token) => {
+  //         // setToken(token)
+  //         window.localStorage.setItem('token', token)
+  //       })
+  //       // console.log(user)
+  //     } else {
+  //       console.log('no user')
+  //     }
+  //   })
+  // }, [])
 
   return (
     <div className="App">
