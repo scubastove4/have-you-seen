@@ -8,11 +8,11 @@ import {
   signOut,
   onAuthStateChanged
 } from 'firebase/auth'
-
+//
+import { CheckSession } from './services/CheckSession'
 import Home from './pages/Home'
 
 import './App.css'
-import userEvent from '@testing-library/user-event'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -69,7 +69,15 @@ function App() {
       })
   }
 
+  // const checkToken = async () => {
+  //   const token = localStorage.getItem('token')
+  //   if (token) checkToken()
+  //   const userCheck = await CheckSession()
+  //   setUser(userCheck)
+  // }
+
   // useEffect(() => {
+  //   checkToken()
   //   onAuthStateChanged(auth, (user) => {
   //     if (user) {
   //       setAuthenticated(true)
