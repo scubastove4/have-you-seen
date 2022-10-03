@@ -1,8 +1,8 @@
 import { useState } from 'react' //useEffect
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 
 import {
-  getAuth,
+  // getAuth,
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
@@ -10,6 +10,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from 'firebase/auth'
+
+import { auth } from './config/firebaseConfig'
 //
 // import { CheckSession } from './services/CheckSession'
 import Home from './pages/Home'
@@ -22,11 +24,32 @@ function App() {
   const [user, setUser] = useState(null)
   const [authenticated, setAuthenticated] = useState(false)
 
-  //login or sign up state
+  // login or sign up state
   const [login, setLogin] = useState(true)
 
+  // login and sign up values
+  const [signUpValues, setSignUpValues] = useState({
+    // username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+  const [loginValues, setLoginValues] = useState({ email: '', password: '' })
+
+  // update login and sign up values
+  const updateSignUpValues = (e) => {
+    setSignUpValues({ ...signUpValues, [e.target.name]: e.target.value })
+  }
+
+  const updateLoginValues = (e) => {
+    setLoginValues({ ...loginValues, [e.target.name]: e.target.value })
+  }
+
+  //navigate to different pages
+  let navigate = useNavigate()
+
   // initialize firebase auth
-  const auth = getAuth()
+  // const auth = getAuth()
 
   // initialize instance of Google Provider
   const provider = new GoogleAuthProvider()
@@ -50,6 +73,7 @@ function App() {
         email: result.user.email,
         userId: result.user.uid
       })
+      navigate('/')
     })
     // .catch((e) => {
     //   const errorCode = e.errorCode
@@ -60,25 +84,48 @@ function App() {
   }
 
   // firebase sign up and login, no google acct
-  const regSignUp = (email, password) => {
-    createUserWithEmailAndPassword(auth, email, password).then(() => {
-      setLogin(false)
-    })
-    // .catch((e) => {
-    //   const errorCode = e.errorCode
-    //   const errorMessage = e.message
-    //   const email = e.customData.email
-    //   const credential = GoogleAuthProvider.credentialFromError(e)
-    // })
+  const submitRegSignUp = (e) => {
+    e.preventDefault()
+    console.log(signUpValues.email, signUpValues.password)
+    createUserWithEmailAndPassword(
+      auth,
+      signUpValues.email,
+      signUpValues.password
+    )
+      .then(() => {
+        setLogin(true)
+      })
+      .catch((error) => {
+        console.log(
+          error.errorCode,
+          error.errorMessage,
+          error.customData.email,
+          GoogleAuthProvider.credentialFromError(error)
+        )
+        // const errorCode = e.errorCode
+        // const errorMessage = e.message
+        // const email = e.customData.email
+        // const credential = GoogleAuthProvider.credentialFromError(e)
+      })
   }
 
-  const regLogin = (email, password) => {
-    signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
+  const submitRegLogin = (e) => {
+    e.preventDefault()
+    signInWithEmailAndPassword(
+      auth,
+      loginValues.email,
+      loginValues.password
+    ).then((userCredential) => {
       setUser({
         displayName: userCredential.user.displayName,
         email: userCredential.user.email,
         userId: userCredential.user.uid
       })
+      userCredential.user.getIdToken().then((token) => {
+        window.localStorage.setItem('token', token)
+      })
+      setAuthenticated(true)
+      navigate('/')
     })
     // .catch((e) => {
     //   const errorCode = e.errorCode
@@ -96,6 +143,7 @@ function App() {
         setUser(null)
         setAuthenticated(false)
         window.localStorage.clear()
+        navigate('/login')
       })
       .catch((e) => {
         console.log('error')
@@ -132,7 +180,7 @@ function App() {
           path="/"
           element={
             <Home
-              googleLogin={googleLogin}
+              // googleLogin={googleLogin}
               googleLogout={googleLogout}
               authenticated={authenticated}
             />
@@ -141,10 +189,18 @@ function App() {
         <Route
           path="/login"
           element={
-            <Home
+            <LoginSignUpPage
               googleLogin={googleLogin}
-              googleLogout={googleLogout}
+              // googleLogout={googleLogout}
               authenticated={authenticated}
+              login={login}
+              setLogin={setLogin}
+              submitRegSignUp={submitRegSignUp}
+              signUpValues={signUpValues}
+              updateSignUpValues={updateSignUpValues}
+              submitRegLogin={submitRegLogin}
+              loginValues={loginValues}
+              updateLoginValues={updateLoginValues}
             />
           }
         />

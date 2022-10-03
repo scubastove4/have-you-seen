@@ -1,6 +1,6 @@
-const LoginForm = ({ loginValues, updateLoginValues, submitLogin }) => {
+const LoginForm = ({ submitRegLogin, loginValues, updateLoginValues }) => {
   return (
-    <form onSubmit={(e) => submitLogin(e)} id="login-form">
+    <form onSubmit={(e) => submitRegLogin(e)} id="login-form">
       <span>
         <label htmlFor="login-username">Email</label>
         <input

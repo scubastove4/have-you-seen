@@ -1,6 +1,6 @@
-const SignUpForm = ({ signUpValues, updateSignUpValues, submitSignUp }) => {
+const SignUpForm = ({ submitRegSignUp, signUpValues, updateSignUpValues }) => {
   return (
-    <form onSubmit={(e) => submitSignUp(e)} id="sign-up-form">
+    <form onSubmit={(e) => submitRegSignUp(e)} id="sign-up-form">
       {/* <span>
         <label htmlFor="sign-up-username">Username:</label>
         <input
