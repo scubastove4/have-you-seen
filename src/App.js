@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react' //useEffect
 import { Route, Routes } from 'react-router-dom'
 
 import {
@@ -6,19 +6,26 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
-  onAuthStateChanged
+  // onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
 } from 'firebase/auth'
 //
-import { CheckSession } from './services/CheckSession'
+// import { CheckSession } from './services/CheckSession'
 import Home from './pages/Home'
+import LoginSignUpPage from './pages/LoginSignUpPage'
 
 import './App.css'
 
 function App() {
+  // user and authenticated
   const [user, setUser] = useState(null)
   const [authenticated, setAuthenticated] = useState(false)
-  // const [token, setToken] = useState(null)
 
+  //login or sign up state
+  const [login, setLogin] = useState(true)
+
+  // initialize firebase auth
   const auth = getAuth()
 
   // initialize instance of Google Provider
@@ -28,18 +35,16 @@ function App() {
     login_hint: 'user@example.com'
   })
 
+  // use google acct to sign up new user or login existing
   const googleLogin = () => {
     // sign in using popup
-    // const auth = getAuth()
     signInWithPopup(auth, provider).then((result) => {
       const credential = GoogleAuthProvider.credentialFromResult(result)
       console.log(credential)
       setAuthenticated(true)
       result.user.getIdToken().then((token) => {
-        // setToken(token)
         window.localStorage.setItem('token', token)
       })
-      // const token = credential.accessToken
       setUser({
         displayName: result.user.displayName,
         email: result.user.email,
@@ -54,13 +59,41 @@ function App() {
     // })
   }
 
+  // firebase sign up and login, no google acct
+  const regSignUp = (email, password) => {
+    createUserWithEmailAndPassword(auth, email, password).then(() => {
+      setLogin(false)
+    })
+    // .catch((e) => {
+    //   const errorCode = e.errorCode
+    //   const errorMessage = e.message
+    //   const email = e.customData.email
+    //   const credential = GoogleAuthProvider.credentialFromError(e)
+    // })
+  }
+
+  const regLogin = (email, password) => {
+    signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
+      setUser({
+        displayName: userCredential.user.displayName,
+        email: userCredential.user.email,
+        userId: userCredential.user.uid
+      })
+    })
+    // .catch((e) => {
+    //   const errorCode = e.errorCode
+    //   const errorMessage = e.message
+    //   const email = e.customData.email
+    //   const credential = GoogleAuthProvider.credentialFromError(e)
+    // })
+  }
+
+  // firebase logout
   const googleLogout = () => {
-    // const auth = getAuth()
     signOut(auth)
       .then(() => {
         console.log('signed out')
         setUser(null)
-        // setToken(null)
         setAuthenticated(false)
         window.localStorage.clear()
       })
@@ -97,6 +130,16 @@ function App() {
       <Routes>
         <Route
           path="/"
+          element={
+            <Home
+              googleLogin={googleLogin}
+              googleLogout={googleLogout}
+              authenticated={authenticated}
+            />
+          }
+        />
+        <Route
+          path="/login"
           element={
             <Home
               googleLogin={googleLogin}
