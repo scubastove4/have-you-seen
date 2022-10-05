@@ -13,7 +13,7 @@ import {
 
 import { auth } from './config/firebaseConfig'
 //
-// import { CheckSession } from './services/CheckSession'
+// import { CheckSession } from './verificationServices/CheckSession'
 import Home from './pages/Home'
 import LoginSignUpPage from './pages/LoginSignUpPage'
 
